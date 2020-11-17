@@ -141,10 +141,21 @@ def get_events(day, service):
     events = events_result.get('items', [])
 
     if not events:
-        print('No upcoming events found.')
-    for event in events:
-        start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        speak('No upcoming events found.')
+    else:
+        speak(f"You have {len(events)} events on this day.")
+
+        for event in events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            print(start, event['summary'])
+            start_ = str(start.split("T"[1].split("-")[0])
+
+            if int(start_time.split(":")[0])<12:
+                start_time = start_time + "am"
+            else:
+                start_time = start_time + "pm"
+
+            speak(events["summary"]
 
 def get_date(text):                             # pasa lo dicho como "text"
     text = text.lower()                         # se pasa el texto a minusculas
@@ -215,15 +226,5 @@ def main():
             elif "goodbye" in text:
                 speak("goodbye, daniel")
                 break
-            else:
-                try:
-                    service = authenticate_google()
-                    speak(get_events(get_date(text), service))
-                except:
-                    pass
-
 
 if __name__ == '__main__':
-    main()
-
-
