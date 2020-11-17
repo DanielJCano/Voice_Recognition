@@ -32,9 +32,13 @@ def Homework():
     password.send_keys("sscz70ic")
     password.send_keys(Keys.ENTER)
     try:
-        Dis_Algo = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "[2020-2] B5 - DISEÑO")))
+        Dis_Algo = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.PARTIAL_LINK_TEXT, "[2020-2] B5 - DISEÑO")))
         Dis_Algo.click()
-        Tarea_Dis_Algo_Hoy = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+        Tarea_Dis_Algo_Hoy = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Dis_Algo_Hoy:
             print("No hay tarea de Diseño de Algoritmos.")
             count += 1
@@ -42,9 +46,15 @@ def Homework():
             print("Tarea de Diseño de Algoritmos: ")
             print("\n" + Tarea_Dis_Algo_Hoy.text)
         driver.back()
-        Estructura_Datos = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "ESTRUCTURA")))
+
+
+        Estructura_Datos = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.PARTIAL_LINK_TEXT, "ESTRUCTURA")))
         Estructura_Datos.click()
-        Tarea_Estru_Datos = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+        Tarea_Estru_Datos = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Estru_Datos:
             print("\nNo hay tarea de Estructura de Datos.")
             count += 1
@@ -52,18 +62,30 @@ def Homework():
             print("Tarea de Estructura de Datos: ")
             print("\n" + Tarea_Estru_Datos.text)
         driver.back()
-        Electronica_Digital = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "ELECTRONICA ")))
+
+
+        Electronica_Digital = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.PARTIAL_LINK_TEXT, "ELECTRONICA ")))
         Electronica_Digital.click()
-        Tarea_Electro_Digi = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+        Tarea_Electro_Digi = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Electro_Digi:
             print("\nNo hay Tarea de Electronica Digital II. ")
             count += 1
         else:
             print("\nTarea de Electronica Digital II: ", "\n" + Tarea_Electro_Digi.text)
         driver.back()
-        Ecuaciones = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "20-2 ")))
+
+
+        Ecuaciones = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.PARTIAL_LINK_TEXT, "20-2 ")))
         Ecuaciones.click()
-        Tarea_Ecuaciones = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+        Tarea_Ecuaciones = WebDriverWait(driver, 5).until(
+                                            EC.presence_of_element_located((
+                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Ecuaciones:
             print("\nNo hay Tarea de Ecuaciones Diferenciales. ")
             count += 1
@@ -215,32 +237,8 @@ def note(text):
         f.write(text)
 
     subprocess.Popen(["notepad.exe", file_name])
-# def main():
-#         lock = True
-#         while lock == True:
-#             speak("hello, how can I help")
-#             print("Listening...")
-#             text = get_audio().lower()
 
-#             if "hello" in text:
-#                 speak("Hello Daniel.")
-#                 continue
-
-#             speak("okay, let me take a look")
-#             if "weather" in text:
-#                 speak(Weather())
-#                 continue
-
-#             elif "homework" in text:
-                # link = "https://cetys.blackboard.com/webapps/login/"
-                # h = homework(link)
-                # speak(h)
-                # continue
-#             elif "goodbye" in text:
-#                 speak("goodbye, daniel")
-#                 break
-
-if __name__ == '__main__':
+def main():
     speak("hello daniel, how can i help?")
     servicio = authenticate_google()
     text = get_audio().lower()
@@ -266,3 +264,7 @@ if __name__ == '__main__':
     for phrase in STRING_HOMEWORK:
         if phrase in text:
             speak(Homework())
+
+
+if __name__ == '__main__':
+    main()
