@@ -15,6 +15,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import subprocess
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -135,7 +136,7 @@ def get_events(day, service):
     utc = pytz.UTC
     date = date.astimezone(utc)
     end_date = end_date.astimezone(utc)
-    events_result = service.events().list(calendarId='primary', timeMin=date.isofromat(), timeMax = end_date,
+    events_result = service.events().list(calendarId='primary', timeMin=date.isoformat(), timeMax = end_date.isoformat(),
                                          singleEvents=True,
                                         orderBy='startTime').execute()
     events = events_result.get('items', [])
@@ -148,14 +149,14 @@ def get_events(day, service):
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
             print(start, event['summary'])
-            start_ = str(start.split("T"[1].split("-")[0])
-
+            start_time = str(start.split("T")[1].split("-")[0])
             if int(start_time.split(":")[0])<12:
                 start_time = start_time + "am"
             else:
+                start_time = str(int(start_time.split(":")[0])-12)
                 start_time = start_time + "pm"
 
-            speak(events["summary"]
+            speak(event["summary"] + "at" + start_time)
 
 def get_date(text):                             # pasa lo dicho como "text"
     text = text.lower()                         # se pasa el texto a minusculas
@@ -202,29 +203,62 @@ def get_date(text):                             # pasa lo dicho como "text"
 
     return datetime.date(month = month, day = day, year = year)
 
-def main():
-        lock = True
-        while lock == True:
-            speak("hello, how can I help")
-            print("Listening...")
-            text = get_audio().lower()
+def note(text):
+    date = datetime.datetime.now()
+    file_name = str(date).replace(":", "-") + "-note.txt"
+    with open(file_name, "w") as f:
+        f.write(text)
 
-            if "hello" in text:
-                speak("Hello Daniel.")
-                continue
+    subprocess.Popen(["notepad.exe", file_name])
+# def main():
+#         lock = True
+#         while lock == True:
+#             speak("hello, how can I help")
+#             print("Listening...")
+#             text = get_audio().lower()
 
-            speak("okay, let me take a look")
-            if "weather" in text:
-                speak(Weather())
-                continue
+#             if "hello" in text:
+#                 speak("Hello Daniel.")
+#                 continue
 
-            elif "homework" in text:
-                link = "https://cetys.blackboard.com/webapps/login/"
-                h = homework(link)
-                speak(h)
-                continue
-            elif "goodbye" in text:
-                speak("goodbye, daniel")
-                break
+#             speak("okay, let me take a look")
+#             if "weather" in text:
+#                 speak(Weather())
+#                 continue
+
+#             elif "homework" in text:
+                # link = "https://cetys.blackboard.com/webapps/login/"
+                # h = homework(link)
+                # speak(h)
+                # continue
+#             elif "goodbye" in text:
+#                 speak("goodbye, daniel")
+#                 break
 
 if __name__ == '__main__':
+    servicio = authenticate_google()
+    text = get_audio().lower()
+
+    STRING_CALENDER = ["what do i have", "do i have plans", "am i busy"]
+    for phrase in STRING_CALENDER:
+        if phrase in text:
+            date = get_date(text)
+            if date:
+                get_events(date, servicio)
+            else:
+                speak("please try again")
+
+    STRING_NOTE = ["make a note", "write this down", "remember this"]
+    for phrase in STRING_NOTE:
+        if phrase in text:
+            speak("what would you like me to write down?")
+            note_text = get_audio().lower()
+            note(note_text)
+            speak("I've made a note of that.")
+
+    STRING_HOMEWORK = ["what's the homework"]
+    for phrase in STRING_HOMEWORK:
+        if phrase in text:
+            link = "https://cetys.blackboard.com/webapps/login/"
+            h = homework(link)
+            speak(h)
