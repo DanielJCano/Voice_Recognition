@@ -17,16 +17,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import subprocess
 
-# If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
-MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september","october", "november", "december"]
-DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-DAY_EXTENSIONS = ["rd", "th", "st", "nd"]
-def homework(link):
+
+
+def Homework():
     count = 0
     PATH = "C:\Program Files (x86)\chromedriver.exe"
     driver = webdriver.Chrome(PATH)
-    driver.get(link)
+    driver.get("https: // cetys.blackboard.com/webapps/login/")
     agree = driver.find_element_by_id("agree_button")
     agree.click()
     nombre = driver.find_element_by_name("user_id")
@@ -107,6 +104,14 @@ def get_audio():                                    # Esta funcion sirve para ca
             print("Exception: " + str(e))
     return said                                     # Se regresa el audio en texto para ser analizado.
 
+
+# If modifying these scopes, delete the file token.pickle.
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+MONTHS = ["january", "february", "march", "april", "may", "june",
+          "july", "august", "september", "october", "november", "december"]
+DAYS = ["monday", "tuesday", "wednesday",
+        "thursday", "friday", "saturday", "sunday"]
+DAY_EXTENSIONS = ["rd", "th", "st", "nd"]
 
 def authenticate_google():
     creds = None
@@ -236,6 +241,7 @@ def note(text):
 #                 break
 
 if __name__ == '__main__':
+    speak("hello daniel, how can i help?")
     servicio = authenticate_google()
     text = get_audio().lower()
 
@@ -259,6 +265,4 @@ if __name__ == '__main__':
     STRING_HOMEWORK = ["what's the homework"]
     for phrase in STRING_HOMEWORK:
         if phrase in text:
-            link = "https://cetys.blackboard.com/webapps/login/"
-            h = homework(link)
-            speak(h)
+            speak(Homework())
