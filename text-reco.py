@@ -7,9 +7,9 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import os
 import time
-import playsound
+import pyttsx3
+import pytz
 import speech_recognition as sr
-from gtts import gTTS
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -18,7 +18,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
-
+MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september","october", "november", "december"]
+DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+DAY_EXTENSIONS = ["rd", "th", "st", "nd"]
 def homework(link):
     count = 0
     PATH = "C:\Program Files (x86)\chromedriver.exe"
@@ -84,12 +86,12 @@ def Weather():
     return w.text
 
 
-def speak(text):                                    # Traduce el texto escrito en a audio en ingles
-    tts = gTTS(text = text, lang = "en")            # Transforma el texto a lenguaje, en este caso ingles(lang = "en").
-    filename = "voice.mp3"                          # Salva el archivo "voice.mp3" el cual va a contener el google voice
-    tts.save(filename)                              # del texto que hayamos pasado a lenguaje.
-    playsound.playsound(filename)
-    os.remove(filename)
+def speak(text):                                    # Traduce el texto escrito en a audio
+    engine = pyttsx3.init()                         # Esto nomas empieza a pyttsx3
+    voices = engine.getProperty('voices')
+    engine.setProperty('voice', voices[1].id)
+    engine.say(text)                                # aqui procesa el texto a audio
+    engine.runAndWait()                             # corre y espera que todo el texto se haya dicho
 
 def get_audio():                                    # Esta funcion sirve para captar el audio del usuario.
     r = sr.Recognizer()
@@ -105,7 +107,7 @@ def get_audio():                                    # Esta funcion sirve para ca
     return said                                     # Se regresa el audio en texto para ser analizado.
 
 
-def main():
+def authenticate_google():
     creds = None
 
     if os.path.exists('token.pickle'):
@@ -125,11 +127,16 @@ def main():
 
     service = build('calendar', 'v3', credentials=creds)
 
-    # Call the Calendar API
-    now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print('Getting the upcoming 10 events')
-    events_result = service.events().list(calendarId='primary', timeMin=now,
-                                        maxResults=10, singleEvents=True,
+    return service
+
+def get_events(day, service):
+    date = datetime.datetime.combine(day, datetime.datetime.min.time())            # esto saca el tiempo minimo de un dia o sea 00:00
+    end_date = datetime.datetime.combine(day, datetime.datetime.max.time())        # esto saca el tiempo maximo de un dia o sea 23:59
+    utc = pytz.UTC
+    date = date.astimezone(utc)
+    end_date = end_date.astimezone(utc)
+    events_result = service.events().list(calendarId='primary', timeMin=date.isofromat(), timeMax = end_date,
+                                         singleEvents=True,
                                         orderBy='startTime').execute()
     events = events_result.get('items', [])
 
@@ -139,34 +146,84 @@ def main():
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
 
+def get_date(text):                             # pasa lo dicho como "text"
+    text = text.lower()                         # se pasa el texto a minusculas
+    today = datetime.date.today()               # se agarra la fecha actual
+
+    if text.count("today") > 0:                 # revisa si se ah dicho "today" en alguna parte del texto
+        return today                            # si este es el caso se regresara la fecha de hoy
+
+    day = -1
+    day_of_week = -1
+    month = -1
+    year = today.year
+
+    for word in text.split():                   # si no se habla de hoy entonces buscara por palabras claves
+        if word in MONTHS:
+            month = MONTHS.index(word) + 1
+        elif word in DAYS:
+            day_of_week = DAYS.index(word)
+        elif word.isdigit():
+            day = int(word)
+        else:
+            for ext in DAY_EXTENSIONS:
+                found = word.find(ext)          # se encuentra por ejemplo "5th" que "th" se encuentra en el indice 1
+                if found > 0:                   # buscara lo que viene antes del "th" o sea el 5
+                    try:
+                        day = int(word[:found])
+                    except:
+                        pass
+
+    if month < today.month and month != -1: # si se encuentra un mes en el texto y es menor al mes en el que estamos, necesitamos agregar un año
+        year = year + 1
+    if day < today.day and month == -1 and day != -1:       # si llega a hablarse de un dia sin especificar el mes y el numero es menor al que se esta actualmente
+        month = month + 1                               # tomara ese numero como el dia para el siguiente mes.
+    if month == -1 and day == -1 and day_of_week != -1: # si nomas se llega a hablar de un dia de la semana como "jueves"
+        current_day_of_week = today.weekday()           # checara el dia actual
+        dif = day_of_week - current_day_of_week         # revisara la diferencia entre el dia actual y el dia dicho
+        if dif < 0:
+            dif += 7
+            if text.count("next") >= 1:
+                dif += 7
+        return today + datetime.timedelta(dif)
+    if month == -1 or day == -1:
+        return None
+
+    return datetime.date(month = month, day = day, year = year)
+
+def main():
+        lock = True
+        while lock == True:
+            speak("hello, how can I help")
+            print("Listening...")
+            text = get_audio().lower()
+
+            if "hello" in text:
+                speak("Hello Daniel.")
+                continue
+
+            speak("okay, let me take a look")
+            if "weather" in text:
+                speak(Weather())
+                continue
+
+            elif "homework" in text:
+                link = "https://cetys.blackboard.com/webapps/login/"
+                h = homework(link)
+                speak(h)
+                continue
+            elif "goodbye" in text:
+                speak("goodbye, daniel")
+                break
+            else:
+                try:
+                    service = authenticate_google()
+                    speak(get_events(get_date(text), service))
+                except:
+                    pass
+
 
 if __name__ == '__main__':
     main()
 
-
-
-# def main():
-#         lock = True
-#         while lock == True:
-#             speak("hello, how can I help")
-#             print("Listening...")
-#             text = get_audio()
-
-#             if "hello" in text:
-#                 speak("Hello Daniel.")
-#                 continue
-
-#             speak("okay, let me take a look")
-#             if "weather" in text:
-#                 speak(Weather())
-#                 continue
-
-#             elif "homework" in text:
-#                 link = "https://cetys.blackboard.com/webapps/login/"
-#                 h = homework(link)
-#                 speak(h)
-#                 continue
-#             elif "goodbye" in text:
-#                 speak("goodbye, daniel")
-#                 break
 
