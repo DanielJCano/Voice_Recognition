@@ -1,5 +1,6 @@
 from __future__ import print_function
 import datetime
+from logging import exception
 import pickle
 import os.path
 from googleapiclient.discovery import build
@@ -16,29 +17,34 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import subprocess
-
+options = webdriver.ChromeOptions()
+options.add_argument('headless')  # engage headless mode
+# setting window size is optional
+options.add_argument('window-size=1200x600')
 
 
 def Homework():
     count = 0
     PATH = "C:\Program Files (x86)\chromedriver.exe"
-    driver = webdriver.Chrome(PATH)
-    driver.get("https: // cetys.blackboard.com/webapps/login/")
-    agree = driver.find_element_by_id("agree_button")
-    agree.click()
-    nombre = driver.find_element_by_name("user_id")
-    nombre.send_keys("t023052")
-    password = driver.find_element_by_name("password")
-    password.send_keys("sscz70ic")
-    password.send_keys(Keys.ENTER)
+    driver = webdriver.Chrome(executable_path=PATH, options=options)
+    driver.set_window_size(1440, 900)
+    driver.get("https://cetys.blackboard.com/webapps/login/")
+
     try:
+        agree = driver.find_element_by_id("agree_button")
+        agree.click()
+        nombre = driver.find_element_by_name("user_id")
+        nombre.send_keys("t023052")
+        password = driver.find_element_by_name("password")
+        password.send_keys("sscz70ic")
+        password.send_keys(Keys.ENTER)
         Dis_Algo = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.PARTIAL_LINK_TEXT, "[2020-2] B5 - DISEÑO")))
+                                EC.presence_of_element_located((
+                                By.PARTIAL_LINK_TEXT, "[2020-2] B5 - DISEÑO")))
         Dis_Algo.click()
         Tarea_Dis_Algo_Hoy = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+                                EC.presence_of_element_located((
+                                By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Dis_Algo_Hoy:
             print("No hay tarea de Diseño de Algoritmos.")
             count += 1
@@ -49,12 +55,12 @@ def Homework():
 
 
         Estructura_Datos = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.PARTIAL_LINK_TEXT, "ESTRUCTURA")))
+                                EC.presence_of_element_located((
+                                By.PARTIAL_LINK_TEXT, "ESTRUCTURA")))
         Estructura_Datos.click()
         Tarea_Estru_Datos = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+                                EC.presence_of_element_located((
+                                By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Estru_Datos:
             print("\nNo hay tarea de Estructura de Datos.")
             count += 1
@@ -65,12 +71,12 @@ def Homework():
 
 
         Electronica_Digital = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.PARTIAL_LINK_TEXT, "ELECTRONICA ")))
+                                EC.presence_of_element_located((
+                                By.PARTIAL_LINK_TEXT, "ELECTRONICA ")))
         Electronica_Digital.click()
         Tarea_Electro_Digi = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.ID, "blocklist::3-dueView:::::3-dueView_1")))
+                                EC.presence_of_element_located((
+                                By.ID, "blocklist::3-dueView:::::3-dueView_1")))
         if Tarea_Electro_Digi:
             print("\nNo hay Tarea de Electronica Digital II. ")
             count += 1
@@ -80,8 +86,8 @@ def Homework():
 
 
         Ecuaciones = WebDriverWait(driver, 5).until(
-                                            EC.presence_of_element_located((
-                                            By.PARTIAL_LINK_TEXT, "20-2 ")))
+            EC.presence_of_element_located((
+                By.PARTIAL_LINK_TEXT, "20-2 ")))
         Ecuaciones.click()
         Tarea_Ecuaciones = WebDriverWait(driver, 5).until(
                                             EC.presence_of_element_located((
@@ -100,31 +106,38 @@ def Homework():
 
 def Weather():
     PATH = "C:\Program Files (x86)\chromedriver.exe"
-    driver = webdriver.Chrome(PATH)
-    driver.get("https://www.accuweather.com/en/mx/tijuana/241912/weather-forecast/241912")
-    w = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "temp")))
-    return w.text
+    driver = webdriver.Chrome(executable_path=PATH, options=options)
+    driver.set_window_size(1440, 900)
+    try:
+        driver.get("https://www.accuweather.com/en/mx/tijuana/241912/weather-forecast/241912")
+        weather = WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.CLASS_NAME, "temp")))
+        print(weather)
+        return weather.text
+    except:
+        driver.quit()
+        return "can't get weather at this moment"
 
 
-def speak(text):                                    # Traduce el texto escrito en a audio
-    engine = pyttsx3.init()                         # Esto nomas empieza a pyttsx3
+
+def speak(text):                                            # Traduce el texto escrito en a audio
+    engine = pyttsx3.init()                                 # Esto nomas empieza a pyttsx3
     voices = engine.getProperty('voices')
     engine.setProperty('voice', voices[1].id)
-    engine.say(text)                                # aqui procesa el texto a audio
-    engine.runAndWait()                             # corre y espera que todo el texto se haya dicho
+    engine.say(text)                                        # aqui procesa el texto a audio
+    engine.runAndWait()                                     # corre y espera que todo el texto se haya dicho
 
-def get_audio():                                    # Esta funcion sirve para captar el audio del usuario.
+def get_audio():                                            # Esta funcion sirve para captar el audio del usuario.
     r = sr.Recognizer()
-    with sr.Microphone() as source:                 # Manda a llamar el mic como fuente
-        audio = r.listen(source)                    # aqui escucha lo que se dijo
-        said = ""                                   # se crea un string vacio para sostener lo que se llego a decir como texto
+    with sr.Microphone() as source:                         # Manda a llamar el mic como fuente
+        audio = r.listen(source)                            # aqui escucha lo que se dijo
+        said = ""                                           # se crea un string vacio para sostener lo que se llego a decir como texto
 
-        try:                                        # Ya capturando el audio en texto
-            said = r.recognize_google(audio)        # Usa el API de google para reconocer lo que se dijo.
-            print(said)                             # Mandamos a imprimir el texto de lo dicho para comprobar que esta bien
+        try:                                                # Ya capturando el audio en texto
+            said = r.recognize_google(audio)                # Usa el API de google para reconocer lo que se dijo.
+            print(said)                                     # Mandamos a imprimir el texto de lo dicho para comprobar que esta bien
         except Exception as e:
             print("Exception: " + str(e))
-    return said                                     # Se regresa el audio en texto para ser analizado.
+    return said.lower()                                     # Se regresa el audio en texto para ser analizado.
 
 
 # If modifying these scopes, delete the file token.pickle.
@@ -177,10 +190,10 @@ def get_events(day, service):
             start = event['start'].get('dateTime', event['start'].get('date'))
             print(start, event['summary'])
             start_time = str(start.split("T")[1].split("-")[0])
-            if int(start_time.split(":")[0])<12:
+            if int(start_time.split(":")[0]) < 12:
                 start_time = start_time + "am"
             else:
-                start_time = str(int(start_time.split(":")[0])-12)
+                start_time = str(int(start_time.split(":")[0]) - 12) + start_time.split(":")[1]
                 start_time = start_time + "pm"
 
             speak(event["summary"] + "at" + start_time)
@@ -238,33 +251,44 @@ def note(text):
 
     subprocess.Popen(["notepad.exe", file_name])
 
-def main():
-    speak("hello daniel, how can i help?")
-    servicio = authenticate_google()
-    text = get_audio().lower()
-
-    STRING_CALENDER = ["what do i have", "do i have plans", "am i busy"]
-    for phrase in STRING_CALENDER:
-        if phrase in text:
-            date = get_date(text)
-            if date:
-                get_events(date, servicio)
-            else:
-                speak("please try again")
-
-    STRING_NOTE = ["make a note", "write this down", "remember this"]
-    for phrase in STRING_NOTE:
-        if phrase in text:
-            speak("what would you like me to write down?")
-            note_text = get_audio().lower()
-            note(note_text)
-            speak("I've made a note of that.")
-
-    STRING_HOMEWORK = ["what's the homework"]
-    for phrase in STRING_HOMEWORK:
-        if phrase in text:
-            speak(Homework())
 
 
-if __name__ == '__main__':
-    main()
+
+WAKE = "hey Lydia"
+speak("hello daniel, how can i help?")
+servicio = authenticate_google()
+while True:
+    print("listening...")
+    text = get_audio()
+    if text.count(WAKE) > -1:
+        speak("I am ready")
+        print("listening...")
+        text = get_audio()
+
+        STRING_CALENDER = ["what do i have", "do i have plans", "am i busy"]
+        for phrase in STRING_CALENDER:
+            if phrase in text:
+                date = get_date(text)
+                if date:
+                    get_events(date, servicio)
+                else:
+                    speak("I don't understand.")
+
+        STRING_NOTE = ["make a note", "write this down", "remember this"]
+        for phrase in STRING_NOTE:
+            if phrase in text:
+                speak("what would you like me to write down?")
+                note_text = get_audio().lower()
+                note(note_text)
+                speak("I've made a note of that.")
+
+        STRING_HOMEWORK = ["the homework"]
+        for phrase in STRING_HOMEWORK:
+            if phrase in text:
+                speak("Wait a minute I'm checking")
+                speak(Homework())
+        STRING_WEATHER = ["the weather"]
+        for phrase in STRING_WEATHER:
+            if phrase in text:
+                speak("Sure.")
+                speak(Weather())
